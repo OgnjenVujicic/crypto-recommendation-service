@@ -1,0 +1,14 @@
+version: '3.8'
+
+networks:
+  docker-network:
+    driver: bridge
+
+services:
+  crypto-service:
+    image: cryptorecommendation:1.0.0
+    container_name: crypto_recommendation_service
+    ports:
+      - "8080:8080"
+    restart: always
+    networks: [docker-network]

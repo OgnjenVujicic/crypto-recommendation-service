@@ -1,0 +1,7 @@
+apiVersion: v2
+name: crypto-recommendation-chart
+description: A Helm chart for Crypto Recommendation project
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+icon: https://kubernetes.io/images/favicon.png

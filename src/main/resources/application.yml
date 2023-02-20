@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: "Crypto Recommendation Service"
+  profiles:
+    active: "dev"
+
+springdoc:
+  api-docs:
+    path: /api-docs
+
+crypto:
+  directory: "classpath:assets/prices"
+
+application:
+  pom:
+    version: $project.version$
+    name: $project.name$
+    description: $project.description$
