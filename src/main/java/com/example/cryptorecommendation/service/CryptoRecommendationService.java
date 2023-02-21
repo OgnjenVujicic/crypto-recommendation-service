@@ -47,7 +47,7 @@ public class CryptoRecommendationService {
     public void saveCrypto(String symbol, List<CryptoPrice> prices){
         checkCryptoDataNotEmpty(symbol, prices);
 
-        prices.sort(Comparator.comparing(CryptoPrice::getDateTime));
+        prices = prices.stream().sorted(Comparator.comparing(CryptoPrice::getDateTime)).toList();
         cryptoRepository.save(new Crypto(symbol, prices));
 
         getCryptoStats(symbol, null, null);
@@ -78,13 +78,17 @@ public class CryptoRecommendationService {
             prices = prices.stream().filter(e -> e.getDateTime().isAfter(dateFrom.minusSeconds(1)) &&
                                         e.getDateTime().isBefore(dateTo)).toList();
         }
-        CryptoStats cryptoStats = new CryptoStats();
-        cryptoStats.setSymbol(cryptoSymbol);
-        cryptoStats.setMax(calculateMaxPrice(prices));
-        cryptoStats.setMin(calculateMinPrice(prices));
-        cryptoStats.setOldest(prices.get(0).getPrice());
-        cryptoStats.setNewest(prices.get(prices.size() -1).getPrice());
-        return cryptoStats;
+
+        if(!prices.isEmpty()) {
+            CryptoStats cryptoStats = new CryptoStats();
+            cryptoStats.setSymbol(cryptoSymbol);
+            cryptoStats.setMax(calculateMaxPrice(prices));
+            cryptoStats.setMin(calculateMinPrice(prices));
+            cryptoStats.setOldest(prices.get(0).getPrice());
+            cryptoStats.setNewest(prices.get(prices.size() -1).getPrice());
+            return cryptoStats;
+        }
+        return new CryptoStats(cryptoSymbol, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
     }
 
     private BigDecimal calculateMaxPrice(List<CryptoPrice> prices) {
@@ -111,7 +115,7 @@ public class CryptoRecommendationService {
     public CryptoStatsDto getSpecificCryptoStats(String cryptoSymbol, LocalDate dateFrom, LocalDate dateTo){
         checkIfCryptoIsSupported(cryptoSymbol);
         var dateTimeFrom = dateFrom != null ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
-        var dateTimeTo = dateTo != null ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+        var dateTimeTo = dateTo != null ? LocalDateTime.of(dateTo, LocalTime.MIN) : null;
 
         var cryptoStats = getCryptoStats(cryptoSymbol, dateTimeFrom, dateTimeTo);
         return cryptoMapper.mapCryptoStatsToDto(cryptoStats);
@@ -138,7 +142,7 @@ public class CryptoRecommendationService {
         var normalizedCryptosList = new ArrayList<CryptoNormalizedRangeDto>();
         for(String cryptoSymbol : cryptoSymbols) {
             var dateTimeFrom = dateFrom != null ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
-            var dateTimeTo = dateTo != null ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+            var dateTimeTo = dateTo != null ? LocalDateTime.of(dateTo, LocalTime.MIN) : null;
 
             var cryptoNormalizedRange = calculateNormalizedCryptoPriceForDateRange(cryptoSymbol,dateTimeFrom,dateTimeTo);
             normalizedCryptosList.add(cryptoNormalizedRange);
@@ -164,6 +168,8 @@ public class CryptoRecommendationService {
             normalizedRange.setNormalizedPrice(normalizedPrice);
             return normalizedRange;
         }
+
+        normalizedRange.setNormalizedPrice(BigDecimal.ZERO);
         return normalizedRange;
     }
 
