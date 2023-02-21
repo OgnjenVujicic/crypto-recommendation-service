@@ -37,6 +37,13 @@ public class CryptoRecommendationService {
     private final CryptoStatsRepository cryptoStatsRepository;
     private final CryptoMapper cryptoMapper;
 
+    /**
+     * Method to store crypto data in repository
+     * Also the method is storing calculated stats of crypto all-time values
+     *
+     * @param symbol crypto symbol
+     * @param prices list of crypto prices with timestamps
+     */
     public void saveCrypto(String symbol, List<CryptoPrice> prices){
         checkCryptoDataNotEmpty(symbol, prices);
 
@@ -46,6 +53,10 @@ public class CryptoRecommendationService {
         getCryptoStats(symbol, null, null);
     }
 
+    /**
+     * Based on crypto symbol and dates from and to the method will return stats for provided Crypto.
+     * The stats for specific dates are stored in memory and not calculated again for better performance.
+     */
     public CryptoStats getCryptoStats(String cryptoSymbol, LocalDateTime dateFrom, LocalDateTime dateTo){
         var cryptoStats = cryptoStatsRepository.getCryptoStatsForRange(cryptoSymbol, dateFrom, dateTo);
         if(cryptoStats == null) {
@@ -55,6 +66,11 @@ public class CryptoRecommendationService {
 
         return cryptoStats;
     }
+
+    /**
+     * Method for calculating Crypto Stats for specified date range.
+     * If the dates are null, the method will calculate stats considering all ever stored prices.
+     */
     private CryptoStats calculateCryptoStats(String cryptoSymbol, LocalDateTime dateFrom, LocalDateTime dateTo) {
         var prices = cryptoRepository.findBySymbol(cryptoSymbol).getPrices();
 
@@ -89,6 +105,9 @@ public class CryptoRecommendationService {
         }
     }
 
+    /**
+     * Returns Crypto Stats for a given date range.
+     */
     public CryptoStatsDto getSpecificCryptoStats(String cryptoSymbol, LocalDate dateFrom, LocalDate dateTo){
         checkIfCryptoIsSupported(cryptoSymbol);
         var dateTimeFrom = dateFrom != null ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
@@ -98,6 +117,9 @@ public class CryptoRecommendationService {
         return cryptoMapper.mapCryptoStatsToDto(cryptoStats);
     }
 
+    /**
+     * If Crypto is not detected in our in-memory database, return CryptoNotSupported exception.
+     */
     private void checkIfCryptoIsSupported(String cryptoSymbol) {
         Crypto crypto = cryptoRepository.findBySymbol(cryptoSymbol);
         if(crypto == null) {
@@ -106,6 +128,10 @@ public class CryptoRecommendationService {
         }
     }
 
+    /**
+     * Based on date range provided in arguments, the method will calculate normalized prices for that range for
+     * each crypto in DB and return it in descending sorted list.
+     */
     public CryptoNormalizedRangeListDto getNormalizedCryptosListDescending(LocalDate dateFrom, LocalDate dateTo) {
         var cryptoSymbols = cryptoRepository.getAllCryptoSymbols();
 
@@ -122,6 +148,9 @@ public class CryptoRecommendationService {
         return new CryptoNormalizedRangeListDto(normalizedCryptosList);
     }
 
+    /**
+     * Method for calculating normalized price for Crypto provided and for provided date range.
+     */
     private CryptoNormalizedRangeDto calculateNormalizedCryptoPriceForDateRange(String cryptoSymbol,
                                                                                 LocalDateTime fromDate,
                                                                                 LocalDateTime toDate) {
@@ -138,6 +167,9 @@ public class CryptoRecommendationService {
         return normalizedRange;
     }
 
+    /**
+     * Return Crypto with highest normalized range for the specified day.
+     */
     public CryptoNormalizedRangeDto cryptoWithHighestNormalizedRangeByDay(LocalDate date) {
         var fromDate = LocalDateTime.of(date, LocalTime.MIN);
         var toDate = fromDate.plusDays(1);

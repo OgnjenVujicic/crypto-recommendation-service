@@ -42,7 +42,7 @@ public class CryptoLoader {
     private String cryptoDirectory;
 
     /**
-     * Load crypto data from CSV files on ApplicationReadyEvent.
+     * Load crypto data from CSV files on ApplicationReadyEvent and store it using repositories.
      */
     @EventListener(ApplicationReadyEvent.class)
     public void loadCryptoData() {

@@ -3,6 +3,8 @@
 ## Build and Run application
 
 ### Building Docker Image
+Docker images are built using Spring Boot layered jars.
+This improves efficiency and start-up time as we build only the layers that are changed.
 
 1. `cd cryptorecommendation/docker`
 2. 
@@ -34,3 +36,10 @@ We can check our k8s deployments: `kubectl get all -n=crypto-app`
 
 Test the app: http://localhost:8080/swagger-ui/index.html
 
+## Considerations for Production
+
+-  We should use in-memory data storage, for instance Redis.
+-  We could use relational DB if we have large amount of data and use Redis to cache frequent data and statistics.
+-  Now, we are loading Crypto data each time we start application, potentially we could have separate microservice for
+constantly loading new data while making this service just consume, process and expose the data.
+-  Here is used Bucket4J for rate limiting, in production ready environment with high traffics we should use Load Balancers.
