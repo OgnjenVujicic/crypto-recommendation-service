@@ -3,6 +3,11 @@ spring:
     name: "Crypto Recommendation Service"
   profiles:
     active: "dev"
+  cache:
+    cache-names:
+      - rate-limit
+    caffeine:
+      spec: maximumSize=100000,expireAfterAccess=3600s
 
 springdoc:
   api-docs:
@@ -16,3 +21,16 @@ application:
     version: $project.version$
     name: $project.name$
     description: $project.description$
+
+#rate limit settings
+bucket4j:
+  enabled: true
+  filters:
+    - cache-name: rate-limit
+      hide-http-response-headers: false
+      url: /api/.*
+      rate-limits:
+        - bandwidths:
+            - capacity: 5
+              time: 10
+              unit: seconds
